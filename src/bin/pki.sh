@@ -1,10 +1,11 @@
 #!/bin/bash
+
 ## -----------------------------------------------------------------------------
 ## Linux Scripts.
-## Start, stop or disable a list of services.
+## Public Key Infrastructure (PKI) management toolkit.
 ##
-## @package ojullien\bash\bin\manageservices
-## @license MIT <https://github.com/ojullien/bash-manageservices/blob/master/LICENSE>
+## @package ojullien\bash\bin
+## @license MIT <https://github.com/ojullien/bash-pki/blob/master/LICENSE>
 ## -----------------------------------------------------------------------------
 #set -o errexit
 set -o nounset
@@ -25,25 +26,33 @@ readonly m_DIR_REALPATH="$(realpath "$(dirname "$0")")"
 ## Includes sources & configuration
 ## -----------------------------------------------------------------------------
 # shellcheck source=/dev/null
-. "${m_DIR_SYS}/runasroot.sh"
+#. "${m_DIR_SYS}/runasroot.sh"
 # shellcheck source=/dev/null
 . "${m_DIR_SYS}/string.sh"
 # shellcheck source=/dev/null
 . "${m_DIR_SYS}/filesystem.sh"
 # shellcheck source=/dev/null
+. "${m_DIR_SYS}/openssl.sh"
+# shellcheck source=/dev/null
 . "${m_DIR_SYS}/option.sh"
 # shellcheck source=/dev/null
 . "${m_DIR_SYS}/config.sh"
+# Load PKI configuration
+Config::load "pki"
+
 # shellcheck source=/dev/null
-. "${m_DIR_SYS}/service.sh"
-Config::load "manageservices"
-# shellcheck source=/dev/null
-. "${m_DIR_APP}/manageservices/app.sh"
+. "${m_DIR_APP}/pki/app.sh"
 
 ## -----------------------------------------------------------------------------
 ## Help
 ## -----------------------------------------------------------------------------
-((m_OPTION_SHOWHELP)) && ManageServices::showHelp && exit 0
+((m_OPTION_SHOWHELP)) && PKI::showHelp && exit 0
+(( 0==$# )) && PKI::showHelp && exit 1
+
+## -----------------------------------------------------------------------------
+## Trace
+## -----------------------------------------------------------------------------
+Constant::trace
 
 ## -----------------------------------------------------------------------------
 ## Start
@@ -54,51 +63,61 @@ String::notice "The PID for $(basename "$0") process is: $$"
 Console::waitUser
 
 ## -----------------------------------------------------------------------------
-## Parse the app options and arguments
+## Main PKI commands
 ## -----------------------------------------------------------------------------
-declare -i iReturn=1
 
-if (( "$#" )); then
-    case "$1" in
-    stop)
-        String::separateLine
-        Service::stopServices ${m_SERVICES_STOP}
-        iReturn=$?
-        ;;
-    start)
-        String::separateLine
-        Service::startServices ${m_SERVICES_START}
-        iReturn=$?
-        ;;
-    disable)
-        String::separateLine
-        Service::disableServices ${m_SERVICES_DISABLE}
-        iReturn=$?
-        ;;
-    -t|--trace)
-        shift
-        String::separateLine
-        Constant::trace
-        ManageServices::trace
-        ;;
-    --*|-*) # unknown option
-        shift
-        String::separateLine
-        SaveSite::showHelp
-        exit 0
-        ;;
-    *) # unknown option
-        String::separateLine
-        ManageServices::showHelp
-        ;;
-    esac
-else
-        String::separateLine
-        ManageServices::showHelp
+# Parameters
+if (($# < 1)); then
+    PKI::showHelp
+    return 1
 fi
+
+# Do the job
+case "$1" in
+
+    rootca|root|rca|r) # Simple PKI root CA level
+        shift
+        # shellcheck source=/dev/null
+        . "${m_DIR_APP}/pki/root_app.sh"
+        PKI::Root::main "$@"
+        ;;
+
+    signingca|signing|sca|s) # Simple PKI intermediate signing CA level
+        shift
+        # shellcheck source=/dev/null
+        . "${m_DIR_APP}/pki/signing_app.sh"
+        PKI::Signing::main "$@"
+        ;;
+
+    tls) # User level, TLS certificate
+        shift
+        # shellcheck source=/dev/null
+        . "${m_DIR_APP}/pki/user_app.sh"
+        PKI::User::main "tls" "$@"
+        ;;
+
+    email) # User level, Email certificate
+        shift
+        # shellcheck source=/dev/null
+        . "${m_DIR_APP}/pki/user_app.sh"
+        PKI::User::main "email" "$@"
+        ;;
+
+    soft) # User level, Software certificate
+        shift
+        # shellcheck source=/dev/null
+        . "${m_DIR_APP}/pki/user_app.sh"
+        PKI::User::main "soft" "$@"
+        ;;
+
+    *)
+        String::error "argument error: missing or incorrect command."
+        PKI::showHelp
+        ;;
+esac
 
 ## -----------------------------------------------------------------------------
 ## END
 ## -----------------------------------------------------------------------------
 String::notice "Now is: $(date -R)"
-exit ${iReturn}
+exit 0

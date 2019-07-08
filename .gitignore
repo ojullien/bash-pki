@@ -1,3 +1,7 @@
 .vscode/
 desktop.ini
 local.*
+*.fr.conf
+*.org.conf
+*.com.conf
+/src/bin/ca/
