@@ -42,7 +42,9 @@ Available Commands:
 
 ### Create the Root Certificate
 
-Use the command: `pki.sh root install`
+1. Create or update the [root ca openssl configuration file](src/app/pki/cnf/root-ca.sample.conf)
+2. Update the [main configuration file](src/app/pki/config.sh)
+3. Run the command: `pki.sh root install`
 
 ```bash
 Usage: pki.sh root <command>
@@ -67,7 +69,9 @@ Available Commands:
 
 ### Create the Intermediate Signing Certificate
 
-Use the command: `pki.sh signing install`
+1. Create or update the [intermediate signing ca openssl configuration file](src/app/pki/cnf/signing-ca.sample.conf)
+2. Update the [main configuration file](src/app/pki/config.sh)
+3. Run the command: `pki.sh signing install`
 
 ```bash
 Usage: pki.sh signing <command>
@@ -92,16 +96,16 @@ Available Commands:
 
 ### Create the user Certificate
 
-Use the command: `pki.sh tls domain.tld install`.
-
-The domain.tld.conf file must exist in the [configuration](/src/app/pki/cnf) folder.
+1. Create the user configuration file using [the sample](src/app/pki/cnf/tls.sample.conf) and name it domain.tld.conf for example.
+2. Update the [main configuration file](src/app/pki/config.sh)
+3. Run the command: `pki.sh tls domain.tld install`.
 
 ```bash
 Usage: pki.sh <tls | email | soft> <name> <command>
         User certificate application.
 
 name:
-        name of the configuration file located in [/src/app/pki/cnf](/src/app/pki/cnf). Without the path.
+        name of the configuration file located in cnf folder. Without the path.
 
 Available Commands:
         bundle                          Pack the private key and the certificate into a PKCS#12 bundle.
