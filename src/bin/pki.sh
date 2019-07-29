@@ -26,7 +26,7 @@ readonly m_DIR_REALPATH="$(realpath "$(dirname "$0")")"
 ## Includes sources & configuration
 ## -----------------------------------------------------------------------------
 # shellcheck source=/dev/null
-#. "${m_DIR_SYS}/runasroot.sh"
+. "${m_DIR_SYS}/runasroot.sh"
 # shellcheck source=/dev/null
 . "${m_DIR_SYS}/string.sh"
 # shellcheck source=/dev/null
